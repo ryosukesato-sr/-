@@ -70,13 +70,13 @@ function dataKoushin() {
 /**
  * 店舗リストシート作成（ソース列付きマージ対応）
  * - auto: BigQueryから取得したデータ
- * - manual: 手動追加したデータ
+ * - manual: 手動追加したデータ（E列に'manual'と入力）
  * - BigQuery更新時はautoのみ上書き、manualは維持
  * - BigQueryに同じ店舗コードが登録されたらmanualを自動削除
+ * ※列構造: A:店舗コード, B:店舗名, C:リージョン, D:店舗タイプ, E:ソース（参照先は変更なし）
  */
 function tenpoListSakusei(ss) {
   const sheetName = '店舗リスト';
-  const SOURCE_COL = 5; // ソース列（E列）
   
   const query = `
     SELECT
@@ -101,23 +101,22 @@ function tenpoListSakusei(ss) {
     Logger.log('新規シート「' + sheetName + '」を作成しました');
   } else {
     // 既存のmanualデータを保持
-    const existingData = sheet.getDataRange().getValues();
-    if (existingData.length > 1) {
+    const lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      const existingData = sheet.getRange(1, 1, lastRow, 5).getValues();
       const headers = existingData[0];
       const sourceIndex = headers.indexOf('ソース');
-      const codeIndex = 0; // 店舗コードは常にA列
       
       if (sourceIndex !== -1) {
         // BigQueryの店舗コード一覧を作成
-        const autoCodeSet = new Set(data.map(row => row.code));
+        const autoCodeSet = new Set((data || []).map(row => row.code));
         
         for (let i = 1; i < existingData.length; i++) {
           const row = existingData[i];
           const source = row[sourceIndex];
-          const code = row[codeIndex];
+          const code = row[0]; // A列=店舗コード
           
           if (source === 'manual') {
-            // BigQueryに同じコードが存在する場合はスキップ（自動削除）
             if (autoCodeSet.has(code)) {
               Logger.log(`✓ 手動データ「${code}」はBigQueryに登録済みのため削除`);
             } else {
@@ -129,9 +128,10 @@ function tenpoListSakusei(ss) {
       }
     }
     sheet.clear();
+    Logger.log('既存シート「' + sheetName + '」をクリアしました');
   }
   
-  // ヘッダー
+  // ヘッダー（E列にソース追加）
   const headers = [['店舗コード', '店舗名', 'リージョン', '店舗タイプ', 'ソース']];
   sheet.getRange(1, 1, 1, headers[0].length)
     .setValues(headers)
@@ -164,9 +164,23 @@ function tenpoListSakusei(ss) {
   sheet.setColumnWidth(5, 80);
   sheet.setFrozenRows(1);
   
-  // manualも含めた全データを返す（フォーム更新用）
-  const allData = autoRows.map(r => ({ code: r[0], shopName: r[1], region: r[2], shopType: r[3], source: 'auto' }));
-  manualRows.forEach(r => allData.push({ code: r[0], shopName: r[1], region: r[2], shopType: r[3], source: 'manual' }));
+  // 返り値：元の形式を維持（manualも含めたオブジェクト配列）
+  // regionSheetSakuseiでの参照用にregionプロパティを含める
+  const allData = (data || []).map(row => ({
+    code: row.code,
+    shopName: row.shopName,
+    region: row.region,
+    shopType: row.shopType
+  }));
+  // manualデータも追加
+  manualRows.forEach(row => {
+    allData.push({
+      code: row[0],
+      shopName: row[1],
+      region: row[2],
+      shopType: row[3]
+    });
+  });
   
   return allData;
 }
@@ -174,9 +188,10 @@ function tenpoListSakusei(ss) {
 /**
  * ユーザーリストシート作成（ソース列付きマージ対応）
  * - auto: BigQueryから取得したデータ
- * - manual: 手動追加したデータ
+ * - manual: 手動追加したデータ（最終列に'manual'と入力）
  * - BigQuery更新時はautoのみ上書き、manualは維持
  * - BigQueryに同じIDが登録されたらmanualを自動削除
+ * ※列構造は変更なし（既存カラム + 最終列にsource追加）
  */
 function userListSakusei(ss) {
   const sheetName = 'ユーザーリスト';
@@ -208,7 +223,7 @@ function userListSakusei(ss) {
       
       if (sourceIndex !== -1 && idIndex !== -1) {
         // BigQueryのID一覧を作成
-        const autoIdSet = new Set(data.map(row => String(row.id)));
+        const autoIdSet = new Set((data || []).map(row => String(row.id)));
         
         for (let i = 1; i < existingData.length; i++) {
           const row = existingData[i];
@@ -216,7 +231,6 @@ function userListSakusei(ss) {
           const id = String(row[idIndex]);
           
           if (source === 'manual') {
-            // BigQueryに同じIDが存在する場合はスキップ（自動削除）
             if (autoIdSet.has(id)) {
               Logger.log(`✓ 手動データ「${id}」はBigQueryに登録済みのため削除`);
             } else {
@@ -228,10 +242,11 @@ function userListSakusei(ss) {
       }
     }
     sheet.clear();
+    Logger.log('既存シート「' + sheetName + '」をクリアしました');
   }
   
   if (data && data.length > 0) {
-    // ヘッダー（source列を追加）
+    // ヘッダー（最終列にsource追加）
     const baseHeaders = Object.keys(data[0]);
     const headers = [...baseHeaders, 'source'];
     
@@ -273,6 +288,7 @@ function userListSakusei(ss) {
     sheet.setFrozenRows(1);
   }
   
+  // 返り値：元の形式を維持（BigQueryデータそのまま）
   return data;
 }
 
