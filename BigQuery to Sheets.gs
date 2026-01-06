@@ -140,13 +140,7 @@ function userListSakusei(ss) {
     SELECT * 
     FROM \`jinjer.EMPLOYEES\`
     WHERE enrollmentClassification = '在籍'
-      AND departmentName IN (
-        'Region E',
-        'Region D',
-        'Region C',
-        'Region B',
-        'Region A'
-      )
+      AND REGEXP_CONTAINS(departmentName, r'^Region [A-Z]$')
       AND ID != '99998'
   `;
   
@@ -250,34 +244,41 @@ function regionSheetSakusei(ss, tenpoData, userData) {
     return user;
   });
   
-  // リージョンのリストを取得（重複なし）
+  // リージョンのリストを取得（店舗データとユーザーデータの両方から、重複なし）
   const regionSet = new Set();
+  
+  // 店舗データからリージョンを抽出
   tenpoData.forEach(tenpo => {
     if (tenpo.region) {
       regionSet.add(tenpo.region);
     }
   });
   
+  // ユーザーデータからもリージョンを抽出（店舗がなくてもユーザーがいれば対応）
+  userList.forEach(user => {
+    const match = (user.department || '').match(/^Region\s*([A-Z])$/i);
+    if (match) {
+      regionSet.add(`Region ${match[1].toUpperCase()}`);
+    }
+  });
+  
   const regions = Array.from(regionSet).sort();
-  Logger.log('検出されたリージョン: ' + regions.join(', '));
+  Logger.log('検出されたリージョン（店舗+ユーザー統合）: ' + regions.join(', '));
   
   // ユーザーごとにシートを作成
   userList.forEach(user => {
     const userFullName = user.fullName || user.id || '名前なし';
     const userDept = user.department || '';
     
-    // このユーザーが所属するリージョンを確認
-    const userRegion = regions.find(region => 
-      userDept === region || userDept.includes(region)
-    );
-    
-    if (!userRegion) {
-      Logger.log(`⚠ ユーザー ${userFullName} はリージョンに所属していません（部署: ${userDept}）`);
+    // ユーザーの部署名からリージョンを直接抽出
+    const deptMatch = userDept.match(/^Region\s*([A-Z])$/i);
+    if (!deptMatch) {
+      Logger.log(`⚠ ユーザー ${userFullName} はリージョン形式に一致しません（部署: ${userDept}）`);
       return;
     }
     
-    // リージョンのアルファベット部分のみを抽出（Region A → A）
-    const regionLetter = userRegion.replace('Region ', '');
+    const regionLetter = deptMatch[1].toUpperCase();
+    const userRegion = `Region ${regionLetter}`;
     
     // シート名：「フルネーム リージョンアルファベット」
     const sheetName = `${userFullName} ${regionLetter}`;
@@ -322,14 +323,17 @@ function regionSheetSakusei(ss, tenpoData, userData) {
         
         rows.push([tantosha, tenpoDisplay]);
       });
+    } else {
+      // 店舗がない場合はプレースホルダーを追加
+      rows.push([user.fullName || user.id || '', '（店舗データなし - 登録後に自動更新されます）']);
     }
     
     // データ書き込み
-    if (rows.length > 0) {
-      sheet.getRange(2, 1, rows.length, 2).setValues(rows);
+    sheet.getRange(2, 1, rows.length, 2).setValues(rows);
+    if (userTenpo.length > 0) {
       Logger.log(`  ${sheetName}: ${rows.length}件のデータを書き込みました`);
     } else {
-      Logger.log(`  ${sheetName}: データがありません`);
+      Logger.log(`  ${sheetName}: 店舗データなし（プレースホルダーを追加）`);
     }
     
     // 列幅設定
