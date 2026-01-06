@@ -1,0 +1,452 @@
+<mxfile host="app.diagrams.net" modified="2026-01-06T00:00:00.000Z" agent="Mozilla/5.0" version="22.1.0" type="device">
+  <diagram name="システム全体構成" id="system-overview">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- タイトル -->
+        <mxCell id="title" value="店舗不具合フォーム システム構成図" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="400" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Google Cloud 枠 -->
+        <mxCell id="gcloud-frame" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="1080" height="680" as="geometry" />
+        </mxCell>
+        <mxCell id="gcloud-label" value="Google Cloud Platform" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#1565C0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="85" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- BigQuery セクション -->
+        <mxCell id="bq-frame" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="60" y="130" width="280" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="bq-label" value="BigQuery (データソース)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#E65100;" vertex="1" parent="1">
+          <mxGeometry x="60" y="135" width="280" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- SHOPS テーブル -->
+        <mxCell id="shops-table" value="exment.SHOPS&#xa;&#xa;店舗マスター&#xa;- code&#xa;- name&#xa;- region&#xa;- shop_type" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=11;align=center;fillColor=#FFFFFF;strokeColor=#E65100;" vertex="1" parent="1">
+          <mxGeometry x="80" y="170" width="110" height="140" as="geometry" />
+        </mxCell>
+        
+        <!-- EMPLOYEES テーブル -->
+        <mxCell id="employees-table" value="jinjer.EMPLOYEES&#xa;&#xa;従業員マスター&#xa;- id&#xa;- firstName&#xa;- lastName&#xa;- departmentName" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=11;align=center;fillColor=#FFFFFF;strokeColor=#E65100;" vertex="1" parent="1">
+          <mxGeometry x="210" y="170" width="120" height="140" as="geometry" />
+        </mxCell>
+        
+        <!-- GAS セクション -->
+        <mxCell id="gas-frame" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="400" y="130" width="320" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="gas-label" value="Google Apps Script (処理)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#2E7D32;" vertex="1" parent="1">
+          <mxGeometry x="400" y="135" width="320" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- BigQuery to Sheets.gs -->
+        <mxCell id="bq-sheets-gs" value="BigQuery to Sheets.gs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="420" y="170" width="140" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="func-dataKoushin" value="dataKoushin()&#xa;データ取得メイン" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="210" width="130" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="func-tenpo" value="tenpoListSakusei()&#xa;店舗リスト作成" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="260" width="130" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="func-user" value="userListSakusei()&#xa;ユーザーリスト作成" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="310" width="130" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="func-region" value="regionSheetSakusei()&#xa;リージョン別シート" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="360" width="130" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="func-dialog" value="showTenpoRegionDialog()&#xa;手動変更ダイアログ" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F9A825;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="410" width="130" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- リージョン別店舗選択.gs -->
+        <mxCell id="region-gs" value="リージョン別店舗選択.gs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="560" y="170" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="func-formKoushin" value="formKoushin()&#xa;フォーム更新メイン" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="565" y="210" width="140" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="func-dataYomi" value="dataYomikomi()&#xa;シートからデータ読込" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="565" y="260" width="140" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="func-regionChu" value="regionChuushutsu()&#xa;リージョン抽出" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="565" y="310" width="140" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Spreadsheet セクション -->
+        <mxCell id="sheets-frame" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#0277BD;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="780" y="130" width="320" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="sheets-label" value="Google Sheets (データ管理)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#0277BD;" vertex="1" parent="1">
+          <mxGeometry x="780" y="135" width="320" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="sheet-tenpo" value="店舗リスト&#xa;&#xa;店舗コード | 店舗名 | リージョン | タイプ | ソース&#xa;CSW001 | 渋谷店 | A | 直営 | auto&#xa;CSW060 | 新宿店 | F | 直営 | manual" style="shape=note;whiteSpace=wrap;html=1;size=14;verticalAlign=top;align=left;spacingLeft=5;fontSize=9;fillColor=#FFFFFF;strokeColor=#0277BD;" vertex="1" parent="1">
+          <mxGeometry x="800" y="170" width="280" height="90" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="sheet-user" value="ユーザーリスト&#xa;&#xa;id | firstName | lastName | ... | departmentName | source&#xa;51 | 樋口 | 真二 | ... | Region A | auto" style="shape=note;whiteSpace=wrap;html=1;size=14;verticalAlign=top;align=left;spacingLeft=5;fontSize=9;fillColor=#FFFFFF;strokeColor=#0277BD;" vertex="1" parent="1">
+          <mxGeometry x="800" y="270" width="280" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="sheet-region" value="樋口真二 A / 小島豊大 B / ...&#xa;リージョン別担当シート" style="shape=note;whiteSpace=wrap;html=1;size=14;verticalAlign=top;align=left;spacingLeft=5;fontSize=9;fillColor=#FFFFFF;strokeColor=#0277BD;" vertex="1" parent="1">
+          <mxGeometry x="800" y="350" width="280" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Forms セクション -->
+        <mxCell id="forms-frame" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="780" y="440" width="320" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="forms-label" value="Google Forms (回答収集)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#C2185B;" vertex="1" parent="1">
+          <mxGeometry x="780" y="445" width="320" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="form-emp" value="👤 従業員選択&#xa;- 樋口真二 Region A&#xa;- 小島豊大 Region B&#xa;- ..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C2185B;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="800" y="480" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="form-store" value="🏪 店舗選択&#xa;- CSW001 渋谷店&#xa;- CSW002 新宿店&#xa;- ..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C2185B;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="950" y="480" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="form-section" value="📋 Region A / Region B / ...&#xa;リージョン別セクション" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C2185B;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="800" y="560" width="290" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- 矢印：BigQuery → GAS -->
+        <mxCell id="arrow-bq-gas" value="SQL Query" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#E65100;fontColor=#E65100;" edge="1" parent="1" source="bq-frame" target="gas-frame">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- 矢印：GAS → Sheets -->
+        <mxCell id="arrow-gas-sheets" value="データ書込" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2E7D32;fontColor=#2E7D32;" edge="1" parent="1" source="func-tenpo" target="sheet-tenpo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- 矢印：Sheets → GAS (読込) -->
+        <mxCell id="arrow-sheets-gas" value="データ読込" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0277BD;fontColor=#0277BD;dashed=1;" edge="1" parent="1" source="sheet-tenpo" target="func-dataYomi">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="760" y="215" />
+              <mxPoint x="760" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- 矢印：GAS → Forms -->
+        <mxCell id="arrow-gas-forms" value="フォーム更新" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C2185B;fontColor=#C2185B;" edge="1" parent="1" source="func-formKoushin" target="forms-frame">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="635" y="450" />
+              <mxPoint x="760" y="450" />
+              <mxPoint x="760" y="540" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- トリガー情報 -->
+        <mxCell id="trigger-box" value="⏰ トリガー設定&#xa;&#xa;dataKoushin: 毎日 02:00&#xa;formKoushin: 毎日 02:05" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#FF8F00;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="60" y="360" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- 凡例 -->
+        <mxCell id="legend-frame" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#9E9E9E;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="660" width="400" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" value="凡例" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="665" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-auto" value="auto: BigQuery自動取得" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="70" y="690" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-manual" value="manual: 手動変更（優先）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="70" y="710" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-yellow" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F9A825;" vertex="1" parent="1">
+          <mxGeometry x="230" y="690" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-yellow-text" value="手動変更機能" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="260" y="687" width="100" height="20" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+  
+  <diagram name="データフロー" id="data-flow">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- タイトル -->
+        <mxCell id="flow-title" value="データフロー図" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="450" y="20" width="200" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 1 -->
+        <mxCell id="step1" value="1. BigQuery からデータ取得" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="100" y="100" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step1-detail" value="• 店舗マスター (exment.SHOPS)&#xa;• 従業員マスター (jinjer.EMPLOYEES)&#xa;• SQL クエリで必要データを抽出" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E65100;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="160" width="250" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- 矢印 1→2 -->
+        <mxCell id="arrow1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#666666;" edge="1" parent="1" source="step1-detail" target="step2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 2 -->
+        <mxCell id="step2" value="2. マージ処理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="100" y="280" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step2-detail" value="• 既存の manual データを確認&#xa;• BigQuery と manual のリージョンを比較&#xa;• 同じ → auto に切替&#xa;• 異なる → manual を維持" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="340" width="250" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- 矢印 2→3 -->
+        <mxCell id="arrow2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#666666;" edge="1" parent="1" source="step2-detail" target="step3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 3 -->
+        <mxCell id="step3" value="3. スプレッドシート更新" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#0277BD;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="100" y="470" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step3-detail" value="• 店舗リストシート更新&#xa;• ユーザーリストシート更新&#xa;• リージョン別シート作成/更新" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0277BD;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="530" width="250" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- 矢印 3→4 -->
+        <mxCell id="arrow3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#666666;" edge="1" parent="1" source="step3-detail" target="step4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="225" y="650" />
+              <mxPoint x="500" y="650" />
+              <mxPoint x="500" y="125" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Step 4 -->
+        <mxCell id="step4" value="4. シートからデータ読込" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#0277BD;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="500" y="100" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step4-detail" value="• 店舗リスト読込&#xa;• ユーザーリスト読込&#xa;• リージョン抽出 (A-Z)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0277BD;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="500" y="160" width="250" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- 矢印 4→5 -->
+        <mxCell id="arrow4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#666666;" edge="1" parent="1" source="step4-detail" target="step5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 5 -->
+        <mxCell id="step5" value="5. フォーム更新" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="500" y="280" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step5-detail" value="• 従業員選択肢を更新&#xa;• リージョン別セクション作成&#xa;• 店舗選択肢を更新&#xa;• ナビゲーション設定" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C2185B;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="500" y="340" width="250" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- 完了 -->
+        <mxCell id="complete" value="✅ 更新完了" style="ellipse;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="550" y="470" width="150" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 矢印 5→完了 -->
+        <mxCell id="arrow5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#2E7D32;" edge="1" parent="1" source="step5-detail" target="complete">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- 手動変更フロー -->
+        <mxCell id="manual-frame" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#FF8F00;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="100" width="280" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="manual-title" value="✏️ 手動変更フロー" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#FF8F00;" vertex="1" parent="1">
+          <mxGeometry x="820" y="110" width="280" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="manual1" value="1. カスタムメニュー&#xa;「店舗リージョン変更」" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF8F00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="850" y="160" width="220" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="manual2" value="2. ダイアログで選択&#xa;• 店舗選択&#xa;• リージョン選択 (A-Z)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF8F00;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="850" y="230" width="220" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="manual3" value="3. リージョン変更&#xa;ソース列を manual に" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF8F00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="850" y="310" width="220" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="manual4" value="4. フォーム自動更新&#xa;formKoushin() 実行" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF8F00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="850" y="380" width="220" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="manual5" value="✅ 即座に反映" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#FF8F00;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="450" width="140" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- 手動フロー矢印 -->
+        <mxCell id="m-arrow1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#FF8F00;" edge="1" parent="1" source="manual1" target="manual2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m-arrow2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#FF8F00;" edge="1" parent="1" source="manual2" target="manual3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m-arrow3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#FF8F00;" edge="1" parent="1" source="manual3" target="manual4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="m-arrow4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#FF8F00;" edge="1" parent="1" source="manual4" target="manual5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+  
+  <diagram name="マージロジック" id="merge-logic">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- タイトル -->
+        <mxCell id="merge-title" value="マージロジック（manual データの処理）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="500" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- 開始 -->
+        <mxCell id="start" value="dataKoushin() 実行" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="480" y="80" width="150" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- 条件1 -->
+        <mxCell id="cond1" value="既存シートに&#xa;manual データあり？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="460" y="170" width="190" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- No: 通常処理 -->
+        <mxCell id="normal" value="通常処理&#xa;BigQuery データで上書き" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="200" y="190" width="180" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Yes: manual確認 -->
+        <mxCell id="check-manual" value="各 manual 店舗について&#xa;BigQuery に同じコードあり？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="460" y="300" width="190" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- No: 新規店舗 -->
+        <mxCell id="new-store" value="新規店舗&#xa;manual を維持" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F9A825;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="200" y="315" width="180" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Yes: リージョン比較 -->
+        <mxCell id="compare" value="リージョン比較&#xa;manual と BigQuery" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="460" y="430" width="190" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- 同じ -->
+        <mxCell id="same" value="同じ値&#xa;↓&#xa;BigQuery が追いついた！&#xa;auto に切替" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="430" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- 異なる -->
+        <mxCell id="diff" value="異なる値&#xa;↓&#xa;まだ更新されていない&#xa;manual を維持" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F9A825;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="430" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- 結果統合 -->
+        <mxCell id="merge-result" value="auto + manual を統合して&#xa;シートに書き込み" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#0277BD;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="570" width="250" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- 完了 -->
+        <mxCell id="merge-end" value="完了" style="ellipse;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="505" y="660" width="100" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- 矢印 -->
+        <mxCell id="arr-start" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="start" target="cond1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arr-no1" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;fontColor=#666666;" edge="1" parent="1" source="cond1" target="normal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arr-yes1" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;fontColor=#666666;" edge="1" parent="1" source="cond1" target="check-manual">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arr-no2" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;fontColor=#666666;" edge="1" parent="1" source="check-manual" target="new-store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arr-yes2" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;fontColor=#666666;" edge="1" parent="1" source="check-manual" target="compare">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arr-same" value="同じ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2E7D32;fontColor=#2E7D32;" edge="1" parent="1" source="compare" target="same">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arr-diff" value="異なる" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F9A825;fontColor=#F9A825;" edge="1" parent="1" source="compare" target="diff">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arr-to-merge1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="normal" target="merge-result">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="595" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arr-to-merge2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="new-store" target="merge-result">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="595" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arr-to-merge3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="same" target="merge-result">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="595" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arr-to-merge4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="diff" target="merge-result">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="595" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arr-end" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="merge-result" target="merge-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+
