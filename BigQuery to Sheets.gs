@@ -68,10 +68,15 @@ function dataKoushin() {
 }
 
 /**
- * 店舗リストシート作成
+ * 店舗リストシート作成（ソース列付きマージ対応）
+ * - auto: BigQueryから取得したデータ
+ * - manual: 手動追加したデータ
+ * - BigQuery更新時はautoのみ上書き、manualは維持
+ * - BigQueryに同じ店舗コードが登録されたらmanualを自動削除
  */
 function tenpoListSakusei(ss) {
   const sheetName = '店舗リスト';
+  const SOURCE_COL = 5; // ソース列（E列）
   
   const query = `
     SELECT
@@ -89,49 +94,89 @@ function tenpoListSakusei(ss) {
   const data = bigQueryJikkou(query);
   
   let sheet = ss.getSheetByName(sheetName);
+  let manualRows = [];
+  
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
     Logger.log('新規シート「' + sheetName + '」を作成しました');
   } else {
-    sheet.clear();
-    Logger.log('既存シート「' + sheetName + '」をクリアしました');
-  }
-  
-  if (data && data.length > 0) {
-    // ヘッダー
-    const headers = [['店舗コード', '店舗名', 'リージョン', '店舗タイプ']];
-    sheet.getRange(1, 1, 1, headers[0].length)
-      .setValues(headers)
-      .setFontWeight('bold')
-      .setBackground('#4285f4')
-      .setFontColor('#ffffff');
-    
-    // データ
-    const rows = data.map(row => [
-      row.code || '',
-      row.shopName || '',
-      row.region || '',
-      row.shopType || ''
-    ]);
-    
-    if (rows.length > 0) {
-      sheet.getRange(2, 1, rows.length, 4).setValues(rows);
-      Logger.log('店舗データ: ' + rows.length + '件を書き込みました');
+    // 既存のmanualデータを保持
+    const existingData = sheet.getDataRange().getValues();
+    if (existingData.length > 1) {
+      const headers = existingData[0];
+      const sourceIndex = headers.indexOf('ソース');
+      const codeIndex = 0; // 店舗コードは常にA列
+      
+      if (sourceIndex !== -1) {
+        // BigQueryの店舗コード一覧を作成
+        const autoCodeSet = new Set(data.map(row => row.code));
+        
+        for (let i = 1; i < existingData.length; i++) {
+          const row = existingData[i];
+          const source = row[sourceIndex];
+          const code = row[codeIndex];
+          
+          if (source === 'manual') {
+            // BigQueryに同じコードが存在する場合はスキップ（自動削除）
+            if (autoCodeSet.has(code)) {
+              Logger.log(`✓ 手動データ「${code}」はBigQueryに登録済みのため削除`);
+            } else {
+              manualRows.push(row);
+            }
+          }
+        }
+        Logger.log(`手動データ: ${manualRows.length}件を維持`);
+      }
     }
-    
-    // 列幅設定
-    sheet.setColumnWidth(1, 150);
-    sheet.setColumnWidth(2, 250);
-    sheet.setColumnWidth(3, 150);
-    sheet.setColumnWidth(4, 200);
-    sheet.setFrozenRows(1);
+    sheet.clear();
   }
   
-  return data;
+  // ヘッダー
+  const headers = [['店舗コード', '店舗名', 'リージョン', '店舗タイプ', 'ソース']];
+  sheet.getRange(1, 1, 1, headers[0].length)
+    .setValues(headers)
+    .setFontWeight('bold')
+    .setBackground('#4285f4')
+    .setFontColor('#ffffff');
+  
+  // BigQueryデータ（auto）
+  const autoRows = (data || []).map(row => [
+    row.code || '',
+    row.shopName || '',
+    row.region || '',
+    row.shopType || '',
+    'auto'
+  ]);
+  
+  // autoとmanualを統合
+  const allRows = [...autoRows, ...manualRows];
+  
+  if (allRows.length > 0) {
+    sheet.getRange(2, 1, allRows.length, 5).setValues(allRows);
+    Logger.log(`店舗データ: auto=${autoRows.length}件, manual=${manualRows.length}件`);
+  }
+  
+  // 列幅設定
+  sheet.setColumnWidth(1, 150);
+  sheet.setColumnWidth(2, 250);
+  sheet.setColumnWidth(3, 150);
+  sheet.setColumnWidth(4, 200);
+  sheet.setColumnWidth(5, 80);
+  sheet.setFrozenRows(1);
+  
+  // manualも含めた全データを返す（フォーム更新用）
+  const allData = autoRows.map(r => ({ code: r[0], shopName: r[1], region: r[2], shopType: r[3], source: 'auto' }));
+  manualRows.forEach(r => allData.push({ code: r[0], shopName: r[1], region: r[2], shopType: r[3], source: 'manual' }));
+  
+  return allData;
 }
 
 /**
- * ユーザーリストシート作成
+ * ユーザーリストシート作成（ソース列付きマージ対応）
+ * - auto: BigQueryから取得したデータ
+ * - manual: 手動追加したデータ
+ * - BigQuery更新時はautoのみ上書き、manualは維持
+ * - BigQueryに同じIDが登録されたらmanualを自動削除
  */
 function userListSakusei(ss) {
   const sheetName = 'ユーザーリスト';
@@ -147,31 +192,81 @@ function userListSakusei(ss) {
   const data = bigQueryJikkou(query);
   
   let sheet = ss.getSheetByName(sheetName);
+  let manualRows = [];
+  let existingHeaders = null;
+  
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
     Logger.log('新規シート「' + sheetName + '」を作成しました');
   } else {
+    // 既存のmanualデータを保持
+    const existingData = sheet.getDataRange().getValues();
+    if (existingData.length > 1) {
+      existingHeaders = existingData[0];
+      const sourceIndex = existingHeaders.indexOf('source');
+      const idIndex = existingHeaders.indexOf('id');
+      
+      if (sourceIndex !== -1 && idIndex !== -1) {
+        // BigQueryのID一覧を作成
+        const autoIdSet = new Set(data.map(row => String(row.id)));
+        
+        for (let i = 1; i < existingData.length; i++) {
+          const row = existingData[i];
+          const source = row[sourceIndex];
+          const id = String(row[idIndex]);
+          
+          if (source === 'manual') {
+            // BigQueryに同じIDが存在する場合はスキップ（自動削除）
+            if (autoIdSet.has(id)) {
+              Logger.log(`✓ 手動データ「${id}」はBigQueryに登録済みのため削除`);
+            } else {
+              manualRows.push(row);
+            }
+          }
+        }
+        Logger.log(`手動データ: ${manualRows.length}件を維持`);
+      }
+    }
     sheet.clear();
-    Logger.log('既存シート「' + sheetName + '」をクリアしました');
   }
   
   if (data && data.length > 0) {
-    // ヘッダー
-    const headers = Object.keys(data[0]);
+    // ヘッダー（source列を追加）
+    const baseHeaders = Object.keys(data[0]);
+    const headers = [...baseHeaders, 'source'];
+    
     sheet.getRange(1, 1, 1, headers.length)
       .setValues([headers])
       .setFontWeight('bold')
       .setBackground('#34a853')
       .setFontColor('#ffffff');
     
-    // データ
-    const rows = data.map(row => 
-      headers.map(header => row[header] || '')
-    );
+    // BigQueryデータ（auto）
+    const autoRows = data.map(row => [
+      ...baseHeaders.map(header => row[header] || ''),
+      'auto'
+    ]);
     
-    if (rows.length > 0) {
-      sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
-      Logger.log('ユーザーデータ: ' + rows.length + '件を書き込みました');
+    // manualデータを新しいヘッダーに合わせる
+    const adjustedManualRows = manualRows.map(oldRow => {
+      const newRow = headers.map(h => '');
+      if (existingHeaders) {
+        headers.forEach((h, newIdx) => {
+          const oldIdx = existingHeaders.indexOf(h);
+          if (oldIdx !== -1) {
+            newRow[newIdx] = oldRow[oldIdx];
+          }
+        });
+      }
+      return newRow;
+    });
+    
+    // autoとmanualを統合
+    const allRows = [...autoRows, ...adjustedManualRows];
+    
+    if (allRows.length > 0) {
+      sheet.getRange(2, 1, allRows.length, headers.length).setValues(allRows);
+      Logger.log(`ユーザーデータ: auto=${autoRows.length}件, manual=${adjustedManualRows.length}件`);
     }
     
     sheet.autoResizeColumns(1, headers.length);
