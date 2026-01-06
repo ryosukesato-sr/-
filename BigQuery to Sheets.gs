@@ -356,12 +356,19 @@ function regionSheetSakusei(ss, tenpoData, userData) {
   });
   
   // リージョンのリストを取得（店舗データとユーザーデータの両方から、重複なし）
+  // 正規化: すべて "Region X" 形式に統一
   const regionSet = new Set();
   
-  // 店舗データからリージョンを抽出
+  // 店舗データからリージョンを抽出（"A" → "Region A" に正規化）
   tenpoData.forEach(tenpo => {
     if (tenpo.region) {
-      regionSet.add(tenpo.region);
+      const r = tenpo.region.toString().trim();
+      // 単一アルファベットの場合は "Region X" 形式に変換
+      if (/^[A-Z]$/i.test(r)) {
+        regionSet.add(`Region ${r.toUpperCase()}`);
+      } else {
+        regionSet.add(r);
+      }
     }
   });
   
@@ -396,8 +403,13 @@ function regionSheetSakusei(ss, tenpoData, userData) {
     
     Logger.log(`シート作成: ${sheetName} (フルネーム: ${userFullName}, リージョン: ${userRegion})`);
     
-    // このユーザーが担当する店舗を抽出
-    const userTenpo = tenpoData.filter(tenpo => tenpo.region === userRegion);
+    // このユーザーが担当する店舗を抽出（リージョン形式の違いに対応: "A" または "Region A"）
+    const userTenpo = tenpoData.filter(tenpo => {
+      const tenpoRegion = (tenpo.region || '').toString().trim();
+      return tenpoRegion === regionLetter || 
+             tenpoRegion === userRegion ||
+             tenpoRegion.toUpperCase() === regionLetter;
+    });
     
     Logger.log(`  ${sheetName}: 店舗数=${userTenpo.length}`);
     
