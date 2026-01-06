@@ -6,6 +6,16 @@
  */
 
 
+/**
+ * カスタムメニュー作成
+ * スプレッドシートを開いたときに自動実行
+ */
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('✏️ 店舗リージョン変更')
+    .addItem('店舗のリージョンを変更', 'showTenpoRegionDialog')
+    .addToUi();
+}
 
 /**
  * GCPプロジェクトID設定
@@ -70,9 +80,8 @@ function dataKoushin() {
 /**
  * 店舗リストシート作成（ソース列付きマージ対応）
  * - auto: BigQueryから取得したデータ
- * - manual: 手動追加したデータ（E列に'manual'と入力）
- * - BigQuery更新時はautoのみ上書き、manualは維持
- * - BigQueryに同じ店舗コードが登録されたらmanualを自動削除
+ * - manual: 手動変更したデータ（手動変更が優先される）
+ * - BigQuery更新時、manualの店舗コードはスキップ（手動変更を維持）
  * ※列構造: A:店舗コード, B:店舗名, C:リージョン, D:店舗タイプ, E:ソース（参照先は変更なし）
  */
 function tenpoListSakusei(ss) {
@@ -95,6 +104,7 @@ function tenpoListSakusei(ss) {
   
   let sheet = ss.getSheetByName(sheetName);
   let manualRows = [];
+  let manualCodeSet = new Set();
   
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
@@ -108,20 +118,15 @@ function tenpoListSakusei(ss) {
       const sourceIndex = headers.indexOf('ソース');
       
       if (sourceIndex !== -1) {
-        // BigQueryの店舗コード一覧を作成
-        const autoCodeSet = new Set((data || []).map(row => row.code));
-        
         for (let i = 1; i < existingData.length; i++) {
           const row = existingData[i];
           const source = row[sourceIndex];
           const code = row[0]; // A列=店舗コード
           
           if (source === 'manual') {
-            if (autoCodeSet.has(code)) {
-              Logger.log(`✓ 手動データ「${code}」はBigQueryに登録済みのため削除`);
-            } else {
-              manualRows.push(row);
-            }
+            manualRows.push(row);
+            manualCodeSet.add(code);
+            Logger.log(`✓ 手動データ「${code}」を維持（手動変更優先）`);
           }
         }
         Logger.log(`手動データ: ${manualRows.length}件を維持`);
@@ -139,17 +144,19 @@ function tenpoListSakusei(ss) {
     .setBackground('#4285f4')
     .setFontColor('#ffffff');
   
-  // BigQueryデータ（auto）
-  const autoRows = (data || []).map(row => [
-    row.code || '',
-    row.shopName || '',
-    row.region || '',
-    row.shopType || '',
-    'auto'
-  ]);
+  // BigQueryデータ（auto）- manualで既に存在する店舗コードはスキップ
+  const autoRows = (data || [])
+    .filter(row => !manualCodeSet.has(row.code))  // manual優先
+    .map(row => [
+      row.code || '',
+      row.shopName || '',
+      row.region || '',
+      row.shopType || '',
+      'auto'
+    ]);
   
-  // autoとmanualを統合
-  const allRows = [...autoRows, ...manualRows];
+  // autoとmanualを統合（manualを先に配置して見やすく）
+  const allRows = [...manualRows, ...autoRows];
   
   if (allRows.length > 0) {
     sheet.getRange(2, 1, allRows.length, 5).setValues(allRows);
@@ -513,4 +520,315 @@ function bigQueryJikkou(query) {
     Logger.log('✗ BigQueryエラー: ' + error.toString());
     throw error;
   }
+}
+
+
+// ==================== 店舗リージョン変更ダイアログ ====================
+
+/**
+ * 店舗リージョン変更ダイアログを表示
+ */
+function showTenpoRegionDialog() {
+  const html = HtmlService.createHtmlOutput(getTenpoRegionDialogHtml())
+    .setWidth(450)
+    .setHeight(350);
+  SpreadsheetApp.getUi().showModalDialog(html, '店舗リージョン変更');
+}
+
+/**
+ * ダイアログ用に店舗一覧を取得
+ */
+function getTenpoListForDialog() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('店舗リスト');
+  if (!sheet || sheet.getLastRow() < 2) {
+    return [];
+  }
+  
+  const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 5).getValues();
+  return data.map(row => ({
+    code: row[0],
+    name: row[1],
+    region: row[2],
+    type: row[3],
+    source: row[4],
+    label: `${row[0]} ${row[1]} (現在: ${row[2]})`
+  }));
+}
+
+/**
+ * 店舗のリージョンを変更
+ * @param {string} code - 店舗コード
+ * @param {string} newRegion - 新しいリージョン（A-Z）
+ */
+function updateTenpoRegion(code, newRegion) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('店舗リスト');
+  
+  if (!sheet) {
+    return { success: false, message: '店舗リストシートが見つかりません' };
+  }
+  
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    return { success: false, message: '店舗データがありません' };
+  }
+  
+  const data = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
+  
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][0] === code) {
+      const rowIndex = i + 2; // ヘッダー分+1, 0始まり+1
+      
+      // リージョン列（C列）を更新
+      sheet.getRange(rowIndex, 3).setValue(newRegion);
+      
+      // ソース列（E列）をmanualに変更
+      sheet.getRange(rowIndex, 5).setValue('manual');
+      
+      Logger.log(`✓ 店舗「${code}」のリージョンを「${newRegion}」に変更しました（source: manual）`);
+      
+      return { 
+        success: true, 
+        message: `店舗「${code}」のリージョンを「${newRegion}」に変更しました` 
+      };
+    }
+  }
+  
+  return { success: false, message: `店舗コード「${code}」が見つかりません` };
+}
+
+/**
+ * リージョン変更後にフォームを更新
+ */
+function updateFormAfterRegionChange() {
+  try {
+    // formKoushinが別ファイルにある場合を考慮
+    if (typeof formKoushin === 'function') {
+      formKoushin();
+      return { success: true, message: 'フォームを更新しました' };
+    } else {
+      return { success: false, message: 'formKoushin関数が見つかりません。手動でフォーム更新を実行してください。' };
+    }
+  } catch (error) {
+    return { success: false, message: 'フォーム更新エラー: ' + error.toString() };
+  }
+}
+
+/**
+ * ダイアログHTML生成
+ */
+function getTenpoRegionDialogHtml() {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, sans-serif; 
+      padding: 20px; 
+      margin: 0;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h3 { 
+      margin: 0 0 20px 0; 
+      color: #333;
+      font-size: 16px;
+    }
+    .form-group { margin-bottom: 20px; }
+    label { 
+      display: block; 
+      margin-bottom: 8px; 
+      font-weight: 600;
+      color: #555;
+    }
+    select { 
+      width: 100%; 
+      padding: 10px 12px; 
+      border: 1px solid #ddd; 
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+    }
+    select:focus {
+      outline: none;
+      border-color: #4285f4;
+      box-shadow: 0 0 0 2px rgba(66,133,244,0.2);
+    }
+    .buttons { 
+      display: flex; 
+      gap: 10px; 
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+    button { 
+      padding: 10px 24px; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-cancel { 
+      background: #f1f1f1; 
+      color: #666;
+    }
+    .btn-cancel:hover { background: #e0e0e0; }
+    .btn-submit { 
+      background: #4285f4; 
+      color: white; 
+    }
+    .btn-submit:hover { background: #3367d6; }
+    .btn-submit:disabled { 
+      background: #ccc; 
+      cursor: not-allowed; 
+    }
+    .status {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+    }
+    .status.loading { 
+      display: block;
+      background: #e3f2fd; 
+      color: #1565c0; 
+    }
+    .status.success { 
+      display: block;
+      background: #e8f5e9; 
+      color: #2e7d32; 
+    }
+    .status.error { 
+      display: block;
+      background: #ffebee; 
+      color: #c62828; 
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3>🏪 店舗リージョン変更</h3>
+    
+    <div class="form-group">
+      <label>1. どの店舗を変更しますか？</label>
+      <select id="tenpoSelect">
+        <option value="">読み込み中...</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>2. リージョンは何にしますか？</label>
+      <select id="regionSelect">
+        <option value="">選択してください</option>
+        ${Array.from({length: 26}, (_, i) => String.fromCharCode(65 + i))
+          .map(letter => '<option value="' + letter + '">' + letter + '</option>')
+          .join('')}
+      </select>
+    </div>
+    
+    <div class="buttons">
+      <button class="btn-cancel" onclick="google.script.host.close()">キャンセル</button>
+      <button class="btn-submit" id="submitBtn" onclick="submitChange()" disabled>決定</button>
+    </div>
+    
+    <div id="status" class="status"></div>
+  </div>
+  
+  <script>
+    let tenpoList = [];
+    
+    // 初期化
+    window.onload = function() {
+      google.script.run
+        .withSuccessHandler(function(data) {
+          tenpoList = data;
+          const select = document.getElementById('tenpoSelect');
+          select.innerHTML = '<option value="">選択してください</option>';
+          data.forEach(function(tenpo) {
+            const option = document.createElement('option');
+            option.value = tenpo.code;
+            option.textContent = tenpo.label;
+            select.appendChild(option);
+          });
+        })
+        .withFailureHandler(function(error) {
+          showStatus('error', '店舗データの取得に失敗しました');
+        })
+        .getTenpoListForDialog();
+    };
+    
+    // 選択変更時にボタンを有効化
+    document.getElementById('tenpoSelect').onchange = checkForm;
+    document.getElementById('regionSelect').onchange = checkForm;
+    
+    function checkForm() {
+      const tenpo = document.getElementById('tenpoSelect').value;
+      const region = document.getElementById('regionSelect').value;
+      document.getElementById('submitBtn').disabled = !tenpo || !region;
+    }
+    
+    // 変更実行
+    function submitChange() {
+      const code = document.getElementById('tenpoSelect').value;
+      const region = document.getElementById('regionSelect').value;
+      
+      if (!code || !region) return;
+      
+      document.getElementById('submitBtn').disabled = true;
+      showStatus('loading', '処理中... リージョンを変更しています');
+      
+      // 1. リージョン変更
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showStatus('loading', '処理中... フォームを更新しています');
+            
+            // 2. フォーム更新
+            google.script.run
+              .withSuccessHandler(function(formResult) {
+                if (formResult.success) {
+                  showStatus('success', result.message + '\\n' + formResult.message);
+                  setTimeout(function() {
+                    google.script.host.close();
+                  }, 2000);
+                } else {
+                  showStatus('success', result.message + '（フォーム更新は手動で実行してください）');
+                }
+              })
+              .withFailureHandler(function(error) {
+                showStatus('success', result.message + '（フォーム更新は手動で実行してください）');
+              })
+              .updateFormAfterRegionChange();
+          } else {
+            showStatus('error', result.message);
+            document.getElementById('submitBtn').disabled = false;
+          }
+        })
+        .withFailureHandler(function(error) {
+          showStatus('error', 'エラー: ' + error);
+          document.getElementById('submitBtn').disabled = false;
+        })
+        .updateTenpoRegion(code, region);
+    }
+    
+    function showStatus(type, message) {
+      const status = document.getElementById('status');
+      status.className = 'status ' + type;
+      status.textContent = message;
+    }
+  </script>
+</body>
+</html>
+  `;
 }
