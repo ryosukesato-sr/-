@@ -106,11 +106,17 @@ function tenpoListSakusei(ss) {
   let manualRows = [];
   let manualCodeSet = new Set();
   
+  // BigQueryデータをマップに変換（店舗コード → データ）
+  const bqDataMap = new Map();
+  (data || []).forEach(row => {
+    bqDataMap.set(row.code, row);
+  });
+  
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
     Logger.log('新規シート「' + sheetName + '」を作成しました');
   } else {
-    // 既存のmanualデータを保持
+    // 既存のmanualデータを確認
     const lastRow = sheet.getLastRow();
     if (lastRow > 1) {
       const existingData = sheet.getRange(1, 1, lastRow, 5).getValues();
@@ -121,12 +127,35 @@ function tenpoListSakusei(ss) {
         for (let i = 1; i < existingData.length; i++) {
           const row = existingData[i];
           const source = row[sourceIndex];
-          const code = row[0]; // A列=店舗コード
+          const code = row[0];           // A列=店舗コード
+          const manualRegion = row[2];   // C列=リージョン（手動変更後）
           
           if (source === 'manual') {
-            manualRows.push(row);
-            manualCodeSet.add(code);
-            Logger.log(`✓ 手動データ「${code}」を維持（手動変更優先）`);
+            const bqData = bqDataMap.get(code);
+            
+            if (bqData) {
+              // BigQueryに同じ店舗コードが存在する場合
+              const bqRegion = bqData.region || '';
+              
+              // リージョンを比較（形式の違いを吸収）
+              const normalizedManual = manualRegion.toString().trim().replace(/^Region\s*/i, '').toUpperCase();
+              const normalizedBq = bqRegion.toString().trim().replace(/^Region\s*/i, '').toUpperCase();
+              
+              if (normalizedManual === normalizedBq) {
+                // BigQueryが追いついた → manualを削除してBigQueryを使用
+                Logger.log(`✓ 手動データ「${code}」: BigQueryが更新されました（${bqRegion}）→ 自動データに切替`);
+              } else {
+                // まだ異なる → manualを維持
+                manualRows.push(row);
+                manualCodeSet.add(code);
+                Logger.log(`✓ 手動データ「${code}」を維持（手動:${manualRegion} ≠ BQ:${bqRegion}）`);
+              }
+            } else {
+              // BigQueryに存在しない新規店舗 → manualを維持
+              manualRows.push(row);
+              manualCodeSet.add(code);
+              Logger.log(`✓ 手動データ「${code}」を維持（BigQueryに未登録）`);
+            }
           }
         }
         Logger.log(`手動データ: ${manualRows.length}件を維持`);
@@ -146,7 +175,7 @@ function tenpoListSakusei(ss) {
   
   // BigQueryデータ（auto）- manualで既に存在する店舗コードはスキップ
   const autoRows = (data || [])
-    .filter(row => !manualCodeSet.has(row.code))  // manual優先
+    .filter(row => !manualCodeSet.has(row.code))
     .map(row => [
       row.code || '',
       row.shopName || '',
@@ -155,8 +184,8 @@ function tenpoListSakusei(ss) {
       'auto'
     ]);
   
-  // autoとmanualを統合（manualを先に配置して見やすく）
-  const allRows = [...manualRows, ...autoRows];
+  // autoとmanualを統合
+  const allRows = [...autoRows, ...manualRows];
   
   if (allRows.length > 0) {
     sheet.getRange(2, 1, allRows.length, 5).setValues(allRows);
