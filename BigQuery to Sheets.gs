@@ -69,12 +69,40 @@ function dataKoushin() {
     regionSheetSakusei(ss, tenpoData, userData);
     Logger.log('✓ リージョン別シートの作成が完了しました');
     
+    // 最終更新日時を記録
+    saishuKoushinNichijiKiroku(ss);
+    Logger.log('✓ 最終更新日時を記録しました');
+    
     Logger.log('=== すべてのデータ取得が完了しました! ===');
     
   } catch (error) {
     Logger.log('✗ エラーが発生しました: ' + error.toString());
     throw error;
   }
+}
+
+/**
+ * 最終更新日時を「自動更新仕様・手動更新手順」シートに記録
+ */
+function saishuKoushinNichijiKiroku(ss) {
+  const sheetName = '自動更新仕様・手動更新手順';
+  
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    Logger.log('新規シート「' + sheetName + '」を作成しました');
+    
+    // ヘッダー設定
+    sheet.getRange('A1').setValue('最終更新日時');
+    sheet.getRange('A1').setFontWeight('bold');
+  }
+  
+  // B1に現在日時を記録
+  const now = new Date();
+  const formattedDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+  sheet.getRange('B1').setValue(formattedDate);
+  
+  Logger.log('最終更新日時: ' + formattedDate);
 }
 
 /**
